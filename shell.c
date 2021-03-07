@@ -7,6 +7,7 @@
 
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -18,6 +19,7 @@
 int lsh_cd(char **args);
 int lsh_help(char **args);
 int lsh_exit(char **args);
+int lsh_mkdir(char **args);
 
 /*
   List of builtin commands, followed by their corresponding functions.
@@ -26,14 +28,16 @@ char *builtin_str[] = {
   "cd",
   "help",
   "exit",
-  "quit"
+  "quit",
+  "mkdir"
 };
 
 int (*builtin_func[]) (char **) = {
   &lsh_cd,
   &lsh_help,
   &lsh_exit,
-  &lsh_exit
+  &lsh_exit,
+  &lsh_mkdir
 };
 
 int lsh_num_builtins() {
@@ -89,6 +93,16 @@ int lsh_help(char **args)
 int lsh_exit(char **args)
 {
   return 0;
+}
+
+int lsh_mkdir(char **args) {
+  if (args[1] == NULL) {
+    fprintf(stderr, "lsh: expected argument to \"cd\"\n");
+    } else {
+      if (mkdir(args[1], 1) != 0) {
+        perror("lsh");
+      }
+  }
 }
 
 /**
@@ -202,8 +216,8 @@ char *lsh_read_line(void)
 }
 
 #define LSH_TOK_BUFSIZE 64
-#define LSH_TOK_DELIM " \t\r\n\a"
-#define quote "\""
+#define LSH_TOK_DELIM " \t\r\n\a\""
+
 /**
    @brief Split a line into tokens (very naively).
    @param line The line.
