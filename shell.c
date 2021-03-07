@@ -25,12 +25,14 @@ int lsh_exit(char **args);
 char *builtin_str[] = {
   "cd",
   "help",
-  "exit"
+  "exit",
+  "quit"
 };
 
 int (*builtin_func[]) (char **) = {
   &lsh_cd,
   &lsh_help,
+  &lsh_exit,
   &lsh_exit
 };
 
@@ -201,6 +203,7 @@ char *lsh_read_line(void)
 
 #define LSH_TOK_BUFSIZE 64
 #define LSH_TOK_DELIM " \t\r\n\a"
+#define quote "\""
 /**
    @brief Split a line into tokens (very naively).
    @param line The line.
