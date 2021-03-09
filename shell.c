@@ -13,6 +13,21 @@
 #include <stdio.h>
 #include <string.h>
 
+// HELPER FUNCTIONS
+double to_double(char *s, int start, int stop);
+
+
+double to_double(char *s, int start, int stop) {
+  unsigned long long int m = 1;
+  double res = 0;
+  for (int i = stop; i >= start; i--) {
+      res += (s[i] - '0') * m;
+      m *= 10;
+  }
+    return res;
+}
+
+
 /*
   Function Declarations for builtin shell commands:
  */
@@ -20,6 +35,7 @@ int lsh_cd(char **args);
 int lsh_help(char **args);
 int lsh_exit(char **args);
 int lsh_mkdir(char **args);
+int lsh_add(char **args);
 
 /*
   List of builtin commands, followed by their corresponding functions.
@@ -29,7 +45,8 @@ char *builtin_str[] = {
   "help",
   "exit",
   "quit",
-  "mkdir"
+  "mkdir",
+  "add"
 };
 
 int (*builtin_func[]) (char **) = {
@@ -37,7 +54,8 @@ int (*builtin_func[]) (char **) = {
   &lsh_help,
   &lsh_exit,
   &lsh_exit,
-  &lsh_mkdir
+  &lsh_mkdir,
+  &lsh_add
 };
 
 int lsh_num_builtins() {
@@ -94,17 +112,40 @@ int lsh_exit(char **args)
 {
   return 0;
 }
-
+/**
+ * I dont know what mode 1 does. probably should
+ * This makes a directory
+ */
 int lsh_mkdir(char **args) {
   if (args[1] == NULL) {
-    fprintf(stderr, "lsh: expected argument to \"cd\"\n");
+    fprintf(stderr, "lsh: expected argument to \"mdkir\"\n");
     } else {
       if (mkdir(args[1], 1) != 0) {
         perror("lsh");
       }
   }
 }
+/**Adding an addition function for numbers
+ * maybe try to count the number of arguments so i can add 2+2+2 
+ * 
+ */
+int lsh_add(char **args) {
+  if (args[1] == NULL) {
+    fprintf(stderr, "lsh excepted argument to \"add\"\n");
+  } 
+  else{
+    double sum = 0;
+    int i = 1;
+    while (args[i] != NULL) 
+    {
+      double value = to_double(args[i], 0, strlen(args[i])-1);
+      sum+=value;
+      i++;
+    }
+    fprintf(stdout, "Result is %g\n", sum);
+  }
 
+}
 /**
   @brief Launch a program and wait for it to terminate.
   @param args Null terminated list of arguments (including program).

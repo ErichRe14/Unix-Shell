@@ -9,6 +9,8 @@ Quote delimiter ie "test" = test
 
 Mkdir
 
+"Add" adds integers
+
 
 Planning on Adding:
 
