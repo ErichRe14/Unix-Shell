@@ -1,10 +1,3 @@
-/***************************************************************************//**
-  @file         main.c
-  @author       Stephen Brennan
-  @date         Thursday,  8 January 2015
-  @brief        LSH (Libstephen SHell)
-*******************************************************************************/
-
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -14,28 +7,20 @@
 #include <string.h>
 
 // HELPER FUNCTIONS
-double to_double(char *s, int start, int stop);
 
-
-double to_double(char *s, int start, int stop) {
-  unsigned long long int m = 1;
-  double res = 0;
-  for (int i = stop; i >= start; i--) {
-      res += (s[i] - '0') * m;
-      m *= 10;
-  }
-    return res;
-}
 
 
 /*
   Function Declarations for builtin shell commands:
  */
-int lsh_cd(char **args);
-int lsh_help(char **args);
-int lsh_exit(char **args);
-int lsh_mkdir(char **args);
-int lsh_add(char **args);
+int cd(char **args);
+int help(char **args);
+int shell_exit(char **args);
+int shell_exit(char **args);
+int shell_mkdir(char **args);
+double add(char **args);
+double sub(char **args);
+double multiply(char **args);
 
 /*
   List of builtin commands, followed by their corresponding functions.
@@ -46,19 +31,23 @@ char *builtin_str[] = {
   "exit",
   "quit",
   "mkdir",
-  "add"
+  "add",
+  "sub",
+  "mult"
 };
 
 int (*builtin_func[]) (char **) = {
-  &lsh_cd,
-  &lsh_help,
-  &lsh_exit,
-  &lsh_exit,
-  &lsh_mkdir,
-  &lsh_add
+  &cd,
+  &help,
+  &shell_exit,
+  &shell_exit,
+  &shell_mkdir,
+  &add,
+  &sub,
+  &multiply
 };
 
-int lsh_num_builtins() {
+int num_builtins() {
   return sizeof(builtin_str) / sizeof(char *);
 }
 
@@ -71,7 +60,7 @@ int lsh_num_builtins() {
    @param args List of args.  args[0] is "cd".  args[1] is the directory.
    @return Always returns 1, to continue executing.
  */
-int lsh_cd(char **args)
+int cd(char **args)
 {
   if (args[1] == NULL) {
     fprintf(stderr, "lsh: expected argument to \"cd\"\n");
@@ -88,14 +77,14 @@ int lsh_cd(char **args)
    @param args List of args.  Not examined.
    @return Always returns 1, to continue executing.
  */
-int lsh_help(char **args)
+int help(char **args)
 {
   int i;
   printf("Stephen Brennan's LSH\n");
   printf("Type program names and arguments, and hit enter.\n");
   printf("The following are built in:\n");
 
-  for (i = 0; i < lsh_num_builtins(); i++) {
+  for (i = 0; i < num_builtins(); i++) {
     printf("  %s\n", builtin_str[i]);
   }
 
@@ -108,7 +97,7 @@ int lsh_help(char **args)
    @param args List of args.  Not examined.
    @return Always returns 0, to terminate execution.
  */
-int lsh_exit(char **args)
+int shell_exit(char **args)
 {
   return 0;
 }
@@ -116,7 +105,7 @@ int lsh_exit(char **args)
  * I dont know what mode 1 does. probably should
  * This makes a directory
  */
-int lsh_mkdir(char **args) {
+int shell_mkdir(char **args) {
   if (args[1] == NULL) {
     fprintf(stderr, "lsh: expected argument to \"mdkir\"\n");
     } else {
@@ -129,7 +118,7 @@ int lsh_mkdir(char **args) {
  * maybe try to count the number of arguments so i can add 2+2+2 
  * 
  */
-int lsh_add(char **args) {
+double add(char **args) {
   if (args[1] == NULL) {
     fprintf(stderr, "lsh excepted argument to \"add\"\n");
   } 
@@ -138,20 +127,52 @@ int lsh_add(char **args) {
     int i = 1;
     while (args[i] != NULL) 
     {
-      double value = to_double(args[i], 0, strlen(args[i])-1);
-      sum+=value;
+      sum+=strtod(args[i], NULL);
       i++;
     }
     fprintf(stdout, "Result is %g\n", sum);
   }
-
 }
+
+double sub(char **args) {
+    if (args[1] == NULL) {
+    fprintf(stderr, "lsh excepted argument to \"add\"\n");
+  } 
+  else{
+    double value = strtod(args[1], NULL);
+    int i = 2;
+
+    while (args[i] != NULL) 
+    {
+      value-=strtod(args[i], NULL);
+      i++;
+    }
+    fprintf(stdout, "Result is %g\n", value);
+  }
+}
+
+double multiply(char **args) {
+  if (args[1] == NULL) {
+    fprintf(stderr, "lsh excepted argument to \"mult\"\n");
+  } else {
+    double sum = 1;
+    int i = 1;
+    while (args[i] != NULL) 
+    {
+      sum*=strtod(args[i], NULL);
+      i++;
+    }
+    fprintf(stdout, "Result is %g\n", sum);
+  }
+}
+
 /**
   @brief Launch a program and wait for it to terminate.
   @param args Null terminated list of arguments (including program).
   @return Always returns 1, to continue execution.
  */
-int lsh_launch(char **args)
+
+int shell_launch(char **args)
 {
   pid_t pid;
   int status;
@@ -181,7 +202,7 @@ int lsh_launch(char **args)
    @param args Null terminated list of arguments.
    @return 1 if the shell should continue running, 0 if it should terminate
  */
-int lsh_execute(char **args)
+int execute(char **args)
 {
   int i;
 
@@ -190,22 +211,22 @@ int lsh_execute(char **args)
     return 1;
   }
 
-  for (i = 0; i < lsh_num_builtins(); i++) {
+  for (i = 0; i < num_builtins(); i++) {
     if (strcmp(args[0], builtin_str[i]) == 0) {
       return (*builtin_func[i])(args);
     }
   }
 
-  return lsh_launch(args);
+  return shell_launch(args);
 }
 
 /**
    @brief Read a line of input from stdin.
    @return The line from stdin.
  */
-char *lsh_read_line(void)
+char *read_line(void)
 {
-#ifdef LSH_USE_STD_GETLINE
+#ifdef USE_STD_GETLINE
   char *line = NULL;
   ssize_t bufsize = 0; // have getline allocate a buffer for us
   if (getline(&line, &bufsize, stdin) == -1) {
@@ -218,8 +239,8 @@ char *lsh_read_line(void)
   }
   return line;
 #else
-#define LSH_RL_BUFSIZE 1024
-  int bufsize = LSH_RL_BUFSIZE;
+#define RL_BUFSIZE 1024
+  int bufsize = RL_BUFSIZE;
   int position = 0;
   char *buffer = malloc(sizeof(char) * bufsize);
   int c;
@@ -245,7 +266,7 @@ char *lsh_read_line(void)
 
     // If we have exceeded the buffer, reallocate.
     if (position >= bufsize) {
-      bufsize += LSH_RL_BUFSIZE;
+      bufsize += RL_BUFSIZE;
       buffer = realloc(buffer, bufsize);
       if (!buffer) {
         fprintf(stderr, "lsh: allocation error\n");
@@ -256,17 +277,17 @@ char *lsh_read_line(void)
 #endif
 }
 
-#define LSH_TOK_BUFSIZE 64
-#define LSH_TOK_DELIM " \t\r\n\a\""
+#define TOK_BUFSIZE 64
+#define TOK_DELIM " \t\r\n\a\""
 
 /**
    @brief Split a line into tokens (very naively).
    @param line The line.
    @return Null-terminated array of tokens.
  */
-char **lsh_split_line(char *line)
+char **split_line(char *line)
 {
-  int bufsize = LSH_TOK_BUFSIZE, position = 0;
+  int bufsize = TOK_BUFSIZE, position = 0;
   char **tokens = malloc(bufsize * sizeof(char*));
   char *token, **tokens_backup;
 
@@ -275,13 +296,13 @@ char **lsh_split_line(char *line)
     exit(EXIT_FAILURE);
   }
 
-  token = strtok(line, LSH_TOK_DELIM);
+  token = strtok(line, TOK_DELIM);
   while (token != NULL) {
     tokens[position] = token;
     position++;
 
     if (position >= bufsize) {
-      bufsize += LSH_TOK_BUFSIZE;
+      bufsize += TOK_BUFSIZE;
       tokens_backup = tokens;
       tokens = realloc(tokens, bufsize * sizeof(char*));
       if (!tokens) {
@@ -291,7 +312,7 @@ char **lsh_split_line(char *line)
       }
     }
 
-    token = strtok(NULL, LSH_TOK_DELIM);
+    token = strtok(NULL, TOK_DELIM);
   }
   tokens[position] = NULL;
   return tokens;
@@ -300,7 +321,7 @@ char **lsh_split_line(char *line)
 /**
    @brief Loop getting input and executing it.
  */
-void lsh_loop(void)
+void loop(void)
 {
   char *line;
   char **args;
@@ -308,9 +329,9 @@ void lsh_loop(void)
 
   do {
     printf("> ");
-    line = lsh_read_line();
-    args = lsh_split_line(line);
-    status = lsh_execute(args);
+    line = read_line();
+    args = split_line(line);
+    status = execute(args);
 
     free(line);
     free(args);
@@ -328,7 +349,7 @@ int main(int argc, char **argv)
   // Load config files, if any.
 
   // Run command loop.
-  lsh_loop();
+  loop();
 
   // Perform any shutdown/cleanup.
 
