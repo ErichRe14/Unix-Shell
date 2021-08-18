@@ -5,10 +5,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "pair.h"
 
-// HELPER FUNCTIONS
-
-
+//TODO
+//Find dir
+//Find file
 
 /*
   Function Declarations for builtin shell commands:
@@ -18,36 +19,40 @@ int help(char **args);
 int shell_exit(char **args);
 int shell_exit(char **args);
 int shell_mkdir(char **args);
-double add(char **args);
-double sub(char **args);
-double multiply(char **args);
+int add(char **args);
+int sub(char **args);
+int multiply(char **args);
+int derive(char **args);
 
 /*
   List of builtin commands, followed by their corresponding functions.
  */
 char *builtin_str[] = {
-  "cd",
-  "help",
-  "exit",
-  "quit",
-  "mkdir",
-  "add",
-  "sub",
-  "mult"
+    "cd",
+    "help",
+    "exit",
+    "quit",
+    "mkdir",
+    "add",
+    "sub",
+    "mult",
+    "dx"
 };
 
-int (*builtin_func[]) (char **) = {
-  &cd,
-  &help,
-  &shell_exit,
-  &shell_exit,
-  &shell_mkdir,
-  &add,
-  &sub,
-  &multiply
+int (*builtin_func[])(char **) = {
+    &cd,
+    &help,
+    &shell_exit,
+    &shell_exit,
+    &shell_mkdir,
+    &add,
+    &sub,
+    &multiply,
+    &derive
 };
 
-int num_builtins() {
+int num_builtins()
+{
   return sizeof(builtin_str) / sizeof(char *);
 }
 
@@ -62,10 +67,14 @@ int num_builtins() {
  */
 int cd(char **args)
 {
-  if (args[1] == NULL) {
+  if (args[1] == NULL)
+  {
     fprintf(stderr, "lsh: expected argument to \"cd\"\n");
-  } else {
-    if (chdir(args[1]) != 0) {
+  }
+  else
+  {
+    if (chdir(args[1]) != 0)
+    {
       perror("lsh");
     }
   }
@@ -84,7 +93,8 @@ int help(char **args)
   printf("Type program names and arguments, and hit enter.\n");
   printf("The following are built in:\n");
 
-  for (i = 0; i < num_builtins(); i++) {
+  for (i = 0; i < num_builtins(); i++)
+  {
     printf("  %s\n", builtin_str[i]);
   }
 
@@ -105,67 +115,108 @@ int shell_exit(char **args)
  * I dont know what mode 1 does. probably should
  * This makes a directory
  */
-int shell_mkdir(char **args) {
-  if (args[1] == NULL) {
+int shell_mkdir(char **args)
+{
+  if (args[1] == NULL)
+  {
     fprintf(stderr, "lsh: expected argument to \"mdkir\"\n");
-    } else {
-      if (mkdir(args[1], 1) != 0) {
-        perror("lsh");
-      }
+  }
+  else
+  {
+    if (mkdir(args[1], 1) != 0)
+    {
+      perror("lsh");
+    }
   }
 }
 /**Adding an addition function for numbers
  * maybe try to count the number of arguments so i can add 2+2+2 
  * 
  */
-double add(char **args) {
-  if (args[1] == NULL) {
-    fprintf(stderr, "lsh excepted argument to \"add\"\n");
-  } 
-  else{
+int add(char **args)
+{
+  if (args[1] == NULL)
+  {
+    fprintf(stderr, "excepted argument to \"add\"\n");
+  }
+  else
+  {
     double sum = 0;
     int i = 1;
-    while (args[i] != NULL) 
+    while (args[i] != NULL)
     {
-      sum+=strtod(args[i], NULL);
+      sum += strtod(args[i], NULL);
       i++;
     }
     fprintf(stdout, "Result is %g\n", sum);
   }
 }
 
-double sub(char **args) {
-    if (args[1] == NULL) {
-    fprintf(stderr, "lsh excepted argument to \"add\"\n");
-  } 
-  else{
+int sub(char **args)
+{
+  if (args[1] == NULL)
+  {
+    fprintf(stderr, "excepted argument to \"sub\"\n");
+  }
+  else
+  {
     double value = strtod(args[1], NULL);
     int i = 2;
 
-    while (args[i] != NULL) 
+    while (args[i] != NULL)
     {
-      value-=strtod(args[i], NULL);
+      value -= strtod(args[i], NULL);
       i++;
     }
     fprintf(stdout, "Result is %g\n", value);
   }
 }
 
-double multiply(char **args) {
-  if (args[1] == NULL) {
-    fprintf(stderr, "lsh excepted argument to \"mult\"\n");
-  } else {
+int multiply(char **args)
+{
+  if (args[1] == NULL)
+  {
+    fprintf(stderr, "excepted argument to \"mult\"\n");
+  }
+  else
+  {
     double sum = 1;
     int i = 1;
-    while (args[i] != NULL) 
+    while (args[i] != NULL)
     {
-      sum*=strtod(args[i], NULL);
+      sum *= strtod(args[i], NULL);
       i++;
     }
     fprintf(stdout, "Result is %g\n", sum);
   }
 }
 
+int derive(char **args)
+{ 
+  size_t entries = 1;
+  struct pair pairs[entries];
+
+  pairs[0].key = "sin";
+  pairs[0].value = "cos";
+
+  if (args[1] == NULL)
+  {
+    fprintf(stderr, "excepted argument to \"dx\"\n");
+  }
+  else
+  {
+    char *result;
+    for (size_t i = 0; i < entries; i++)
+    {
+      if (!strcmp(pairs[i].key, args[1]))
+      {
+        result = pairs[i].value;
+        break;
+      }
+    }
+    printf("%s\n", result);
+  }
+}
 /**
   @brief Launch a program and wait for it to terminate.
   @param args Null terminated list of arguments (including program).
@@ -178,18 +229,25 @@ int shell_launch(char **args)
   int status;
 
   pid = fork();
-  if (pid == 0) {
+  if (pid == 0)
+  {
     // Child process
-    if (execvp(args[0], args) == -1) {
+    if (execvp(args[0], args) == -1)
+    {
       perror("lsh");
     }
     exit(EXIT_FAILURE);
-  } else if (pid < 0) {
+  }
+  else if (pid < 0)
+  {
     // Error forking
     perror("lsh");
-  } else {
+  }
+  else
+  {
     // Parent process
-    do {
+    do
+    {
       waitpid(pid, &status, WUNTRACED);
     } while (!WIFEXITED(status) && !WIFSIGNALED(status));
   }
@@ -206,13 +264,16 @@ int execute(char **args)
 {
   int i;
 
-  if (args[0] == NULL) {
+  if (args[0] == NULL)
+  {
     // An empty command was entered.
     return 1;
   }
 
-  for (i = 0; i < num_builtins(); i++) {
-    if (strcmp(args[0], builtin_str[i]) == 0) {
+  for (i = 0; i < num_builtins(); i++)
+  {
+    if (strcmp(args[0], builtin_str[i]) == 0)
+    {
       return (*builtin_func[i])(args);
     }
   }
@@ -229,10 +290,14 @@ char *read_line(void)
 #ifdef USE_STD_GETLINE
   char *line = NULL;
   ssize_t bufsize = 0; // have getline allocate a buffer for us
-  if (getline(&line, &bufsize, stdin) == -1) {
-    if (feof(stdin)) {
-      exit(EXIT_SUCCESS);  // We received an EOF
-    } else  {
+  if (getline(&line, &bufsize, stdin) == -1)
+  {
+    if (feof(stdin))
+    {
+      exit(EXIT_SUCCESS); // We received an EOF
+    }
+    else
+    {
       perror("lsh: getline\n");
       exit(EXIT_FAILURE);
     }
@@ -245,30 +310,39 @@ char *read_line(void)
   char *buffer = malloc(sizeof(char) * bufsize);
   int c;
 
-  if (!buffer) {
+  if (!buffer)
+  {
     fprintf(stderr, "lsh: allocation error\n");
     exit(EXIT_FAILURE);
   }
 
-  while (1) {
+  while (1)
+  {
     // Read a character
     c = getchar();
 
-    if (c == EOF) {
+    if (c == EOF)
+    {
       exit(EXIT_SUCCESS);
-    } else if (c == '\n') {
+    }
+    else if (c == '\n')
+    {
       buffer[position] = '\0';
       return buffer;
-    } else {
+    }
+    else
+    {
       buffer[position] = c;
     }
     position++;
 
     // If we have exceeded the buffer, reallocate.
-    if (position >= bufsize) {
+    if (position >= bufsize)
+    {
       bufsize += RL_BUFSIZE;
       buffer = realloc(buffer, bufsize);
-      if (!buffer) {
+      if (!buffer)
+      {
         fprintf(stderr, "lsh: allocation error\n");
         exit(EXIT_FAILURE);
       }
@@ -288,25 +362,29 @@ char *read_line(void)
 char **split_line(char *line)
 {
   int bufsize = TOK_BUFSIZE, position = 0;
-  char **tokens = malloc(bufsize * sizeof(char*));
+  char **tokens = malloc(bufsize * sizeof(char *));
   char *token, **tokens_backup;
 
-  if (!tokens) {
+  if (!tokens)
+  {
     fprintf(stderr, "lsh: allocation error\n");
     exit(EXIT_FAILURE);
   }
 
   token = strtok(line, TOK_DELIM);
-  while (token != NULL) {
+  while (token != NULL)
+  {
     tokens[position] = token;
     position++;
 
-    if (position >= bufsize) {
+    if (position >= bufsize)
+    {
       bufsize += TOK_BUFSIZE;
       tokens_backup = tokens;
-      tokens = realloc(tokens, bufsize * sizeof(char*));
-      if (!tokens) {
-		free(tokens_backup);
+      tokens = realloc(tokens, bufsize * sizeof(char *));
+      if (!tokens)
+      {
+        free(tokens_backup);
         fprintf(stderr, "lsh: allocation error\n");
         exit(EXIT_FAILURE);
       }
@@ -327,7 +405,8 @@ void loop(void)
   char **args;
   int status;
 
-  do {
+  do
+  {
     printf("> ");
     line = read_line();
     args = split_line(line);
