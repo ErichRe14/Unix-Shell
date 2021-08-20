@@ -19,6 +19,7 @@ int help(char **args);
 int shell_exit(char **args);
 int shell_exit(char **args);
 int shell_mkdir(char **args);
+int shell_launch(char **args);
 int add(char **args);
 int sub(char **args);
 int multiply(char **args);
@@ -39,11 +40,10 @@ char *builtin_str[] = {
     "add",
     "sub",
     "mult",
-    "dx", 
+    "dx",
     "int",
     "dot",
-    "cross"
-};
+    "cross"};
 
 int (*builtin_func[])(char **) = {
     &cd,
@@ -55,7 +55,10 @@ int (*builtin_func[])(char **) = {
     &sub,
     &multiply,
     &derive,
-    &integrate
+    &integrate,
+    &dot_product,
+    &cross_product
+
 };
 
 int num_builtins()
@@ -199,11 +202,11 @@ int multiply(char **args)
 }
 
 int derive(char **args)
-{ 
+{
   int entries = 6;
   char *inputs[6] = {"sin", "cos", "tan", "cot", "sec", "csc"};
   char *results[6] = {"cos", "-sin", "sec^2", "-csc^2", "sec*tan", "-csc*cot"};
-  
+
   if (args[1] == NULL)
   {
     fprintf(stderr, "excepted argument to \"dx\"\n");
@@ -223,11 +226,12 @@ int derive(char **args)
   }
 }
 
-int integrate(char **args) {
+int integrate(char **args)
+{
   int entries = 6;
   char *inputs[6] = {"1/x", "a^x", "tan", "cot", "cos", "sin"};
   char *results[6] = {"ln(x) + c", "(1/ln(x)) * a ^ x", "-ln |cos(x)|", "ln |sin(x)|", "sin(x)", "-cos(x)"};
-  
+
   if (args[1] == NULL)
   {
     fprintf(stderr, "excepted argument to \"dx\"\n");
@@ -245,6 +249,118 @@ int integrate(char **args) {
     }
     printf("%s + c\n", result);
   }
+}
+
+struct vector
+{
+  int size;
+  int arr[];
+};
+
+int dot_product(char **args)
+{
+  struct vector *v1;
+  printf("What is the dimension of the vectors: ");
+  int dem;
+  scanf("%d", &dem);
+
+  v1 = malloc(sizeof(struct vector) + sizeof(int) * dem);
+
+  v1->arr[dem];
+  printf("\nEnter vals for v1: \n");
+  for (int i = 0; i < dem; i++)
+  {
+    printf("val: ");
+    int val;
+    scanf("%d", &val);
+    v1->arr[i] = val;
+  }
+  struct vector *v2;
+  v2 = malloc(sizeof(struct vector) + sizeof(int) * dem);
+  printf("\nEnter vals for v2: \n");
+  for (size_t i = 0; i < dem; i++)
+  {
+    printf("val: ");
+    int val;
+    scanf("%d", &val);
+    v2->arr[i] = val;
+  }
+
+  int sum = 0;
+
+  for (size_t i = 0; i < dem; i++)
+  {
+    sum += (v1->arr[i] * v2->arr[i]);
+  }
+
+  for (size_t i = 0; i < dem; i++)
+  {
+    printf("%d ", v1->arr[i]);
+  }
+  printf("\n");
+  for (size_t i = 0; i < dem; i++)
+  {
+
+    printf("%d ", v2->arr[i]);
+  }
+
+  printf("\nThe dot product is %d", sum);
+
+  return 0;
+}
+
+int cross_product(char **args)
+{
+  struct vector *v1;
+
+  int dem = 3;
+
+  v1 = malloc(sizeof(struct vector) + sizeof(int) * dem);
+
+  printf("Enter vals for v1: \n");
+  for (int i = 0; i < dem; i++)
+  {
+    printf("val: ");
+    int val;
+    scanf("%d", &val);
+    v1->arr[i] = val;
+  }
+  struct vector *v2;
+  v2 = malloc(sizeof(struct vector) + sizeof(int) * dem);
+  printf("\nEnter vals for v2: \n");
+  for (size_t i = 0; i < dem; i++)
+  {
+    printf("val: ");
+    int val;
+    scanf("%d", &val);
+    v2->arr[i] = val;
+  }
+  struct vector *v3;
+  v3 = malloc(sizeof(struct vector) + sizeof(int) * dem);
+  v3->arr[0] = (v1->arr[1] * v2->arr[2]) - (v1->arr[2] * v2->arr[1]);
+  v3->arr[1] = (v1->arr[0] * v2->arr[2]) - (v1->arr[2] * v2->arr[0]);
+  v3->arr[1] *= -1;
+  v3->arr[2] = (v1->arr[0] * v2->arr[1]) - (v1->arr[1] * v2->arr[0]);
+
+  for (size_t i = 0; i < dem; i++)
+  {
+    printf("%d ", v1->arr[i]);
+  }
+  printf("\n");
+  for (size_t i = 0; i < dem; i++)
+  {
+
+    printf("%d ", v2->arr[i]);
+  }
+
+  printf("\nThe cross product is.. \n");
+  for (size_t i = 0; i < dem; i++)
+  {
+
+    printf("%d ", v3->arr[i]);
+  }
+
+  return 0;
 }
 /**
   @brief Launch a program and wait for it to terminate.
