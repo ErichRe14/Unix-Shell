@@ -23,6 +23,9 @@ int add(char **args);
 int sub(char **args);
 int multiply(char **args);
 int derive(char **args);
+int integrate(char **args);
+int dot_product(char **args);
+int cross_product(char **args);
 
 /*
   List of builtin commands, followed by their corresponding functions.
@@ -36,7 +39,10 @@ char *builtin_str[] = {
     "add",
     "sub",
     "mult",
-    "dx"
+    "dx", 
+    "int",
+    "dot",
+    "cross"
 };
 
 int (*builtin_func[])(char **) = {
@@ -48,7 +54,8 @@ int (*builtin_func[])(char **) = {
     &add,
     &sub,
     &multiply,
-    &derive
+    &derive,
+    &integrate
 };
 
 int num_builtins()
@@ -193,12 +200,10 @@ int multiply(char **args)
 
 int derive(char **args)
 { 
-  size_t entries = 1;
-  struct pair pairs[entries];
-
-  pairs[0].key = "sin";
-  pairs[0].value = "cos";
-
+  int entries = 6;
+  char *inputs[6] = {"sin", "cos", "tan", "cot", "sec", "csc"};
+  char *results[6] = {"cos", "-sin", "sec^2", "-csc^2", "sec*tan", "-csc*cot"};
+  
   if (args[1] == NULL)
   {
     fprintf(stderr, "excepted argument to \"dx\"\n");
@@ -208,13 +213,37 @@ int derive(char **args)
     char *result;
     for (size_t i = 0; i < entries; i++)
     {
-      if (!strcmp(pairs[i].key, args[1]))
+      if (!strcmp(inputs[i], args[1]))
       {
-        result = pairs[i].value;
+        result = results[i];
         break;
       }
     }
     printf("%s\n", result);
+  }
+}
+
+int integrate(char **args) {
+  int entries = 6;
+  char *inputs[6] = {"1/x", "a^x", "tan", "cot", "cos", "sin"};
+  char *results[6] = {"ln(x) + c", "(1/ln(x)) * a ^ x", "-ln |cos(x)|", "ln |sin(x)|", "sin(x)", "-cos(x)"};
+  
+  if (args[1] == NULL)
+  {
+    fprintf(stderr, "excepted argument to \"dx\"\n");
+  }
+  else
+  {
+    char *result;
+    for (size_t i = 0; i < entries; i++)
+    {
+      if (!strcmp(inputs[i], args[1]))
+      {
+        result = results[i];
+        break;
+      }
+    }
+    printf("%s + c\n", result);
   }
 }
 /**
