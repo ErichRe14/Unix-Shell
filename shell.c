@@ -79,13 +79,13 @@ int cd(char **args)
 {
   if (args[1] == NULL)
   {
-    fprintf(stderr, "lsh: expected argument to \"cd\"\n");
+    fprintf(stderr, "shell: expected argument to \"cd\"\n");
   }
   else
   {
     if (chdir(args[1]) != 0)
     {
-      perror("lsh");
+      perror("shell");
     }
   }
   return 1;
@@ -99,7 +99,7 @@ int cd(char **args)
 int help(char **args)
 {
   int i;
-  printf("Stephen Brennan's LSH\n");
+  printf("Stephen Brennan's shell\n");
   printf("Type program names and arguments, and hit enter.\n");
   printf("The following are built in:\n");
 
@@ -129,13 +129,13 @@ int shell_mkdir(char **args)
 {
   if (args[1] == NULL)
   {
-    fprintf(stderr, "lsh: expected argument to \"mdkir\"\n");
+    fprintf(stderr, "shell: expected argument to \"mdkir\"\n");
   }
   else
   {
     if (mkdir(args[1], 1) != 0)
     {
-      perror("lsh");
+      perror("shell");
     }
   }
 }
@@ -379,14 +379,14 @@ int shell_launch(char **args)
     // Child process
     if (execvp(args[0], args) == -1)
     {
-      perror("lsh");
+      perror("shell");
     }
     exit(EXIT_FAILURE);
   }
   else if (pid < 0)
   {
     // Error forking
-    perror("lsh");
+    perror("shell");
   }
   else
   {
@@ -443,7 +443,7 @@ char *read_line(void)
     }
     else
     {
-      perror("lsh: getline\n");
+      perror("shell: getline\n");
       exit(EXIT_FAILURE);
     }
   }
@@ -457,7 +457,7 @@ char *read_line(void)
 
   if (!buffer)
   {
-    fprintf(stderr, "lsh: allocation error\n");
+    fprintf(stderr, "shell: allocation error\n");
     exit(EXIT_FAILURE);
   }
 
@@ -488,7 +488,7 @@ char *read_line(void)
       buffer = realloc(buffer, bufsize);
       if (!buffer)
       {
-        fprintf(stderr, "lsh: allocation error\n");
+        fprintf(stderr, "shell: allocation error\n");
         exit(EXIT_FAILURE);
       }
     }
@@ -512,7 +512,7 @@ char **split_line(char *line)
 
   if (!tokens)
   {
-    fprintf(stderr, "lsh: allocation error\n");
+    fprintf(stderr, "shell: allocation error\n");
     exit(EXIT_FAILURE);
   }
 
@@ -530,7 +530,7 @@ char **split_line(char *line)
       if (!tokens)
       {
         free(tokens_backup);
-        fprintf(stderr, "lsh: allocation error\n");
+        fprintf(stderr, "shell: allocation error\n");
         exit(EXIT_FAILURE);
       }
     }
